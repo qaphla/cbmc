@@ -162,12 +162,12 @@ bool interpretert::byte_offset_to_memory_offset(
     {
       const mp_integer comp_offset = member_offset(st, comp.get_name(), ns);
 
-      const mp_integer component_byte_size =
+      auto component_byte_size =
         pointer_offset_size(comp.type(), ns);
-      if(component_byte_size<0)
+      if(!component_byte_size.has_value())
         return true;
 
-      if(comp_offset + component_byte_size > offset)
+      if(comp_offset + *component_byte_size > offset)
       {
         mp_integer subtype_result;
         bool ret=byte_offset_to_memory_offset(
@@ -189,25 +189,30 @@ bool interpretert::byte_offset_to_memory_offset(
   else if(source_type.id()==ID_array)
   {
     const auto &at=to_array_type(source_type);
+
     mp_vectort array_size_vec;
     evaluate(at.size(), array_size_vec);
+
     if(array_size_vec.size()!=1)
       return true;
+
     mp_integer array_size=array_size_vec[0];
-    mp_integer elem_size_bytes=pointer_offset_size(at.subtype(), ns);
-    if(elem_size_bytes<=0)
+    auto elem_size_bytes = pointer_offset_size(at.subtype(), ns);
+    if(!elem_size_bytes.has_value() || *elem_size_bytes == 0)
       return true;
+
     mp_integer elem_size_leaves;
     if(count_type_leaves(at.subtype(), elem_size_leaves))
       return true;
-    mp_integer this_idx=offset/elem_size_bytes;
+
+    mp_integer this_idx = offset / (*elem_size_bytes);
     if(this_idx>=array_size_vec[0])
       return true;
+
     mp_integer subtype_result;
-    bool ret=byte_offset_to_memory_offset(
-      at.subtype(),
-      offset%elem_size_bytes,
-      subtype_result);
+    bool ret = byte_offset_to_memory_offset(
+      at.subtype(), offset % (*elem_size_bytes), subtype_result);
+
     result=subtype_result+(elem_size_leaves*this_idx);
     return ret;
   }
@@ -259,26 +264,31 @@ bool interpretert::memory_offset_to_byte_offset(
   else if(source_type.id()==ID_array)
   {
     const auto &at=to_array_type(source_type);
+
     mp_vectort array_size_vec;
     evaluate(at.size(), array_size_vec);
     if(array_size_vec.size()!=1)
       return true;
-    mp_integer elem_size=pointer_offset_size(at.subtype(), ns);
-    if(elem_size==-1)
+
+    auto elem_size = pointer_offset_size(at.subtype(), ns);
+    if(!elem_size.has_value())
       return true;
+
     mp_integer elem_count;
     if(count_type_leaves(at.subtype(), elem_count))
       return true;
+
     mp_integer this_idx=full_cell_offset/elem_count;
     if(this_idx>=array_size_vec[0])
       return true;
+
     mp_integer subtype_result;
     bool ret=
       memory_offset_to_byte_offset(
         at.subtype(),
         full_cell_offset%elem_count,
         subtype_result);
-    result=subtype_result+(elem_size*this_idx);
+    result = subtype_result + ((*elem_size) * this_idx);
     return ret;
   }
   else
