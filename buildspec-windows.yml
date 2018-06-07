@@ -9,10 +9,11 @@ phases:
       - dir 'C:\tools\cygwin\bin'
       - dir 'C:\Program Files (x86)'
       - 'C:\tools\cygwin\bin\sed -i "s/BUILD_ENV[ ]*=.*/BUILD_ENV = MSVC/" src/config.inc'
+      - 'C:\tools\cygwin\bin\bash -c "pwd"'
       - 'C:\tools\cygwin\bin\bash -login -c "set"'
-      - 'C:\tools\cygwin\bin\bash -login -c "/bin/make -C src DOWNLOADER=wget minisat2-download"'
-      - 'C:\tools\cygwin\bin\bash -login -c "/bin/make -C src"'
-      - 'C:\tools\cygwin\bin\bash -login -c "/bin/make -C jbmc/src"'
+      - 'C:\tools\cygwin\bin\bash -login -c "cd $CODEBUILD_SRC_DIR ; /bin/make -C src DOWNLOADER=wget minisat2-download"'
+      - 'C:\tools\cygwin\bin\bash -login -c "cd $CODEBUILD_SRC_DIR ; /bin/make -C src"'
+      - 'C:\tools\cygwin\bin\bash -login -c "cd $CODEBUILD_SRC_DIR ; /bin/make -C jbmc/src"'
   build:
     commands:
   post_build:
