@@ -9,7 +9,6 @@ phases:
       - dir 'C:\tools\cygwin\bin'
       - dir 'C:\Program Files (x86)'
       - 'C:\tools\cygwin\bin\sed -i "s/BUILD_ENV[ ]*=.*/BUILD_ENV = MSVC/" src/config.inc'
-      - 'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat' x64
       - 'C:\tools\cygwin\bin\bash -c "/bin/make DOWNLOADER=wget minisat2-download"'
       - 'C:\tools\cygwin\bin\bash -c "/bin/make -C src"'
       - 'C:\tools\cygwin\bin\bash -c "/bin/make -C jbmc/src"'
