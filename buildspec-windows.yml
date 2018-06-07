@@ -3,14 +3,11 @@ version: 0.2
 phases:
   install:
     commands:
-      - choco install wget -y --no-progress
-      - choco install gnuwin32-make.portable -y --no-progress
-      - choco install cmake -y --no-progress
-      - choco install winflexbison3 -y --no-progress
+      - choco install wget gnuwin32-make.portable winflexbison3 -y --no-progress
   build:
     commands:
       - cd src
-      - make
+      - "C:\ProgramData\chocolatey\lib\gnuwin32-make.portable\tools\make"
   post_build:
     commands:
 artifacts:
