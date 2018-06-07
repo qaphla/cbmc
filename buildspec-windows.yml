@@ -3,6 +3,10 @@ version: 0.2
 phases:
   install:
     commands:
+      - choco install wget
+      - choco install gnuwin32-make.portable
+      - choco install cmake
+      - choco install winflexbison3
   build:
     commands:
       - cd src
