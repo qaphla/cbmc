@@ -7,10 +7,6 @@ phases:
   build:
     commands:
       - cd src
-      - 'C:\ProgramData\chocolatey\lib\gnuwin32-make.portable\tools\make-3\bin\make'
-      - 'dir C:\ProgramData\chocolatey\lib\gnuwin32-make.portable\tools'
-      - 'dir C:\ProgramData\chocolatey\lib\gnuwin32-make.portable\tools\bin'
-      - 'dir C:\ProgramData\chocolatey\lib\gnuwin32-make.portable\tools\make-3'
       - dir 'C:\ProgramData\chocolatey\lib\gnuwin32-make.portable\tools'
       - dir 'C:\ProgramData\chocolatey\lib\gnuwin32-make.portable\tools\bin'
       - dir 'C:\ProgramData\chocolatey\lib\gnuwin32-make.portable\tools\make-3'
