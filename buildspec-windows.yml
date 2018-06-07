@@ -8,7 +8,7 @@ phases:
       - dir 'C:\tools\cygwin'
       - dir 'C:\tools\cygwin\bin'
       - dir 'C:\Program Files (x86)'
-      - 'C:\tools\cygwin\bin\bash -c "/bin/sed -i \"s/BUILD_ENV[ ]*=.*/BUILD_ENV = MSVC/\" src/config.inc"'
+      - 'C:\tools\cygwin\bin\sed -i "s/BUILD_ENV[ ]*=.*/BUILD_ENV = MSVC/" src/config.inc'
       - call 'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat' x64
       - 'C:\tools\cygwin\bin\bash -c "/bin/make -C src"'
   build:
