@@ -3,11 +3,11 @@ version: 0.2
 phases:
   install:
     commands:
-      - choco install wget gnuwin32-make.portable winflexbison3 -y --no-progress
+      - choco install wget gnuwin32-make.portable winflexbison3 patch -y --no-progress
   build:
     commands:
-      - cd src
-      - 'C:\ProgramData\chocolatey\lib\gnuwin32-make.portable\tools\bin\make'
+      - 'C:\ProgramData\chocolatey\lib\gnuwin32-make.portable\tools\bin\make -C src'
+      - 'C:\ProgramData\chocolatey\lib\gnuwin32-make.portable\tools\bin\make -C jbmc/src'
   post_build:
     commands:
 artifacts:
