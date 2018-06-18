@@ -32,6 +32,8 @@ Author: Daniel Kroening, kroening@kroening.com
 #include "anonymous_member.h"
 #include "padding.h"
 
+bool is_lvalue(const exprt &expr);
+
 void c_typecheck_baset::typecheck_expr(exprt &expr)
 {
   if(expr.id()==ID_already_typechecked)
@@ -2081,6 +2083,26 @@ exprt c_typecheck_baset::do_special_functions(
     }
 
     exprt same_object_expr = invalid_pointer(expr.arguments().front());
+    same_object_expr.add_source_location()=source_location;
+
+    return same_object_expr;
+  }
+  else if(identifier==CPROVER_PREFIX "valid_pointer")
+  {
+    if(expr.arguments().size()!=1)
+    {
+      err_location(f_op);
+      error() << "valid_pointer expects one operand" << eom;
+      throw 0;
+    }
+    if(!is_lvalue(expr.arguments().front()))
+    {
+      err_location(f_op);
+      error() << "argument to valid_pointer must be an lvalue" << eom;
+      throw 0;
+    }
+
+    exprt same_object_expr = valid_pointer(expr.arguments().front());
     same_object_expr.add_source_location()=source_location;
 
     return same_object_expr;

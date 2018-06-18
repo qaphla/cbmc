@@ -76,6 +76,7 @@ Author: Daniel Kroening, kroening@kroening.com
 #include "document_properties.h"
 #include "dot.h"
 #include "dump_c.h"
+#include "expand_pointer_predicates.h"
 #include "full_slicer.h"
 #include "function.h"
 #include "havoc_loops.h"
@@ -1080,6 +1081,21 @@ void goto_instrument_parse_optionst::instrument_goto_program()
     do_remove_returns();
     status() << "Checking Code Contracts" << eom;
     check_code_contracts(goto_model);
+  }
+
+  if(cmdline.isset("expand-pointer-predicates"))
+  {
+    expand_pointer_predicates(goto_model);
+  }
+
+  // replace function pointers, if explicitly requested
+  if(cmdline.isset("remove-function-pointers"))
+  {
+    do_indirect_call_and_rtti_removal();
+  }
+  else if(cmdline.isset("remove-const-function-pointers"))
+  {
+    do_remove_const_function_pointers_only();
   }
 
   if(cmdline.isset("function-inline"))

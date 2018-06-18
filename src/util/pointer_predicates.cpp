@@ -16,6 +16,7 @@ Author: Daniel Kroening, kroening@kroening.com
 #include "cprover_prefix.h"
 #include "namespace.h"
 #include "pointer_offset_size.h"
+#include "simplify_expr.h"
 #include "std_expr.h"
 #include "symbol.h"
 
@@ -141,6 +142,59 @@ exprt null_pointer(const exprt &pointer)
 exprt invalid_pointer(const exprt &pointer)
 {
   return unary_exprt(ID_invalid_pointer, pointer, bool_typet());
+}
+
+exprt valid_pointer(const exprt &pointer)
+{
+  return unary_exprt(ID_valid_pointer, pointer, bool_typet());
+}
+
+exprt valid_pointer_assert_def(const exprt &pointer, const namespacet &ns)
+{
+  const not_exprt not_null(null_pointer(pointer));
+  
+  const not_exprt not_deallocated(deallocated(pointer, ns));
+
+  const not_exprt not_dead(dead_object(pointer, ns));
+
+  const not_exprt not_invalid(invalid_pointer(pointer));
+
+  and_exprt check_expr(
+    not_null,
+    not_deallocated,
+    not_dead,
+    not_invalid);
+  check_expr = to_and_expr(simplify_expr(check_expr, ns));
+  return check_expr;
+}
+
+exprt valid_pointer_assume_def(const exprt &pointer, const namespacet &ns)
+{
+  const typet &base_type = pointer.type().subtype();
+
+  const or_exprt malloc_in_bounds(
+    not_exprt(malloc_object(pointer, ns)),
+    and_exprt(
+      not_exprt(dynamic_object_lower_bound(
+        pointer,
+        ns,
+        nil_exprt())),
+      not_exprt(dynamic_object_upper_bound(
+        pointer,
+        base_type,
+        ns,
+        size_of_expr(base_type, ns)))));
+    
+  const not_exprt not_deallocated(deallocated(pointer, ns));
+
+  const not_exprt not_dead(dead_object(pointer, ns));
+
+  and_exprt check_expr(
+    malloc_in_bounds, 
+    not_deallocated,
+    not_dead);
+  check_expr = to_and_expr(simplify_expr(check_expr, ns));
+  return check_expr;
 }
 
 exprt dynamic_object_lower_bound(
