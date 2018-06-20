@@ -1,0 +1,6 @@
+CORE
+main.c
+--pointer-check --expand-pointer-predicates
+^VERIFICATION SUCCESSFUL$
+--
+--

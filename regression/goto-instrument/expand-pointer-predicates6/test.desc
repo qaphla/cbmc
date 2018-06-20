@@ -1,0 +1,55 @@
+CORE
+main.c
+--pointer-check --expand-pointer-predicates
+^\[main.pointer_dereference.1\] dereference failure: pointer NULL in \*s: SUCCESS$
+^\[main.pointer_dereference.2\] dereference failure: pointer invalid in \*s: SUCCESS$
+^\[main.pointer_dereference.3\] dereference failure: deallocated dynamic object in \*s: SUCCESS$
+^\[main.pointer_dereference.4\] dereference failure: dead object in \*s: SUCCESS$
+^\[main.pointer_dereference.5\] dereference failure: pointer outside dynamic object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.6\] dereference failure: pointer outside object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.7\] dereference failure: pointer NULL in \*s: SUCCESS$
+^\[main.pointer_dereference.8\] dereference failure: pointer invalid in \*s: SUCCESS$
+^\[main.pointer_dereference.9\] dereference failure: deallocated dynamic object in \*s: SUCCESS$
+^\[main.pointer_dereference.10\] dereference failure: dead object in \*s: SUCCESS$
+^\[main.pointer_dereference.11\] dereference failure: pointer outside dynamic object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.12\] dereference failure: pointer outside object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.13\] dereference failure: pointer NULL in \*s: SUCCESS$
+^\[main.pointer_dereference.14\] dereference failure: pointer invalid in \*s: SUCCESS$
+^\[main.pointer_dereference.15\] dereference failure: deallocated dynamic object in \*s: SUCCESS$
+^\[main.pointer_dereference.16\] dereference failure: dead object in \*s: SUCCESS$
+^\[main.pointer_dereference.17\] dereference failure: pointer outside dynamic object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.18\] dereference failure: pointer outside object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.19\] dereference failure: pointer NULL in \*s: SUCCESS$
+^\[main.pointer_dereference.20\] dereference failure: pointer invalid in \*s: SUCCESS$
+^\[main.pointer_dereference.21\] dereference failure: deallocated dynamic object in \*s: SUCCESS$
+^\[main.pointer_dereference.22\] dereference failure: dead object in \*s: SUCCESS$
+^\[main.pointer_dereference.23\] dereference failure: pointer outside dynamic object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.24\] dereference failure: pointer outside object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.25\] dereference failure: pointer NULL in \*s: SUCCESS$
+^\[main.pointer_dereference.26\] dereference failure: pointer invalid in \*s: SUCCESS$
+^\[main.pointer_dereference.27\] dereference failure: deallocated dynamic object in \*s: SUCCESS$
+^\[main.pointer_dereference.28\] dereference failure: dead object in \*s: SUCCESS$
+^\[main.pointer_dereference.29\] dereference failure: pointer outside dynamic object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.30\] dereference failure: pointer outside object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.31\] dereference failure: pointer NULL in \*s: SUCCESS$
+^\[main.pointer_dereference.32\] dereference failure: pointer invalid in \*s: SUCCESS$
+^\[main.pointer_dereference.33\] dereference failure: deallocated dynamic object in \*s: SUCCESS$
+^\[main.pointer_dereference.34\] dereference failure: dead object in \*s: SUCCESS$
+^\[main.pointer_dereference.35\] dereference failure: pointer outside dynamic object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.36\] dereference failure: pointer outside object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.37\] dereference failure: pointer NULL in \*s: SUCCESS$
+^\[main.pointer_dereference.38\] dereference failure: pointer invalid in \*s: SUCCESS$
+^\[main.pointer_dereference.39\] dereference failure: deallocated dynamic object in \*s: SUCCESS$
+^\[main.pointer_dereference.40\] dereference failure: dead object in \*s: SUCCESS$
+^\[main.pointer_dereference.41\] dereference failure: pointer outside dynamic object bounds in \*s: SUCCESS$
+^\[main.pointer_dereference.42\] dereference failure: pointer outside object bounds in \*s: SUCCESS$
+^\[main.assertion.1\] : SUCCESS$
+^\[example.pointer_dereference.1\] dereference failure: pointer NULL in \*s: SUCCESS$
+^\[example.pointer_dereference.2\] dereference failure: pointer invalid in \*s: SUCCESS$
+^\[example.pointer_dereference.3\] dereference failure: deallocated dynamic object in \*s: SUCCESS$
+^\[example.pointer_dereference.4\] dereference failure: dead object in \*s: SUCCESS$
+^\[example.pointer_dereference.5\] dereference failure: pointer outside dynamic object bounds in \*s: SUCCESS$
+^\[example.pointer_dereference.6\] dereference failure: pointer outside object bounds in \*s: SUCCESS$
+^VERIFICATION SUCCESSFUL$
+--
+--

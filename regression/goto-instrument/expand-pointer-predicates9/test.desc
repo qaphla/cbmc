@@ -1,0 +1,18 @@
+CORE
+main.c
+--pointer-check --expand-pointer-predicates
+
+^\[main.pointer_dereference.1\] dereference failure: pointer NULL in \*x: SUCCESS$
+^\[main.pointer_dereference.2\] dereference failure: pointer invalid in \*x: SUCCESS$
+^\[main.pointer_dereference.3\] dereference failure: deallocated dynamic object in \*x: SUCCESS$
+^\[main.pointer_dereference.4\] dereference failure: dead object in \*x: SUCCESS$
+^\[main.pointer_dereference.5\] dereference failure: pointer outside dynamic object bounds in \*x: SUCCESS$
+^\[main.pointer_dereference.6\] dereference failure: pointer outside object bounds in \*x: SUCCESS$
+^\[main.pointer_dereference.7\] dereference failure: pointer outside dynamic object bounds in x\[\(signed long int\)1\]: SUCCESS$
+^\[main.pointer_dereference.8\] dereference failure: pointer outside object bounds in x\[\(signed long int\)1\]: FAILURE$
+^\[main.pointer_dereference.9\] dereference failure: pointer outside dynamic object bounds in \*\(x - \(signed long int\)1\): SUCCESS$
+^\[main.pointer_dereference.10\] dereference failure: pointer outside object bounds in \*\(x - \(signed long int\)1\): FAILURE$
+
+^VERIFICATION FAILED$
+--
+--

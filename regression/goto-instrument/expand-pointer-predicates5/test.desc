@@ -1,0 +1,14 @@
+CORE
+main.c
+--pointer-check --expand-pointer-predicates
+^\[main.assertion.1\] Variable length assert: SUCCESS$
+^\[main.pointer_dereference.1\] dereference failure: pointer NULL in x_pointer\[\(signed long int\)2\]: SUCCESS$
+^\[main.pointer_dereference.2\] dereference failure: pointer invalid in x_pointer\[\(signed long int\)2\]: SUCCESS$
+^\[main.pointer_dereference.3\] dereference failure: deallocated dynamic object in x_pointer\[\(signed long int\)2\]: SUCCESS$
+^\[main.pointer_dereference.4\] dereference failure: dead object in x_pointer\[\(signed long int\)2\]: SUCCESS$
+^\[main.pointer_dereference.5\] dereference failure: pointer outside dynamic object bounds in x_pointer\[\(signed long int\)2\]: SUCCESS$
+^\[main.pointer_dereference.6\] dereference failure: pointer outside object bounds in x_pointer\[\(signed long int\)2\]: SUCCESS$
+^\[main.assertion.2\] assertion x_pointer\[\(signed long int\)2\] == 5: SUCCESS$
+^VERIFICATION SUCCESSFUL$
+--
+--
