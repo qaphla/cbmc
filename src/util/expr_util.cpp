@@ -10,14 +10,108 @@ Author: Daniel Kroening, kroening@kroening.com
 #include "expr_util.h"
 
 #include <unordered_set>
+#include "c_types.h"
 #include "expr.h"
 #include "expr_iterator.h"
 #include "fixedbv.h"
 #include "ieee_float.h"
+#include "simplify_expr.h"
 #include "std_expr.h"
 #include "symbol.h"
 #include "namespace.h"
+#include "pointer_offset_size.h"
 #include "arith_tools.h"
+
+inline static typet c_sizeof_type_rec(const exprt &expr)
+{
+  const irept &sizeof_type=expr.find(ID_C_c_sizeof_type);
+
+  if(!sizeof_type.is_nil())
+  {
+    return static_cast<const typet &>(sizeof_type);
+  }
+  else if(expr.id()==ID_mult)
+  {
+    forall_operands(it, expr)
+    {
+      typet t=c_sizeof_type_rec(*it);
+      if(t.is_not_nil())
+        return t;
+    }
+  }
+
+  return nil_typet();
+}
+
+typet type_from_size(const exprt &size, const namespacet &ns)
+{
+  typet result_type = nil_typet();
+
+  exprt tmp_size = size;
+  simplify(tmp_size, ns);
+  typet tmp_type=c_sizeof_type_rec(tmp_size);
+
+  if(tmp_type.is_not_nil())
+  {
+    // Did the size get multiplied?
+    mp_integer elem_size=pointer_offset_size(tmp_type, ns);
+    mp_integer alloc_size;
+
+    if(elem_size<0)
+    {
+      // I believe that this should never happen, but if it does, this seems
+      // to be the most correct thing to do.
+      result_type = array_typet(unsigned_char_type(), tmp_size);
+    }
+    else if(to_integer(tmp_size, alloc_size) &&
+            tmp_size.id()==ID_mult &&
+            tmp_size.operands().size()==2 &&
+            (tmp_size.op0().is_constant() ||
+             tmp_size.op1().is_constant()))
+    {
+      exprt s=tmp_size.op0();
+      if(s.is_constant())
+      {
+        s=tmp_size.op1();
+        PRECONDITION(c_sizeof_type_rec(tmp_size.op0()) == tmp_type);
+      }
+      else
+      {
+        PRECONDITION(c_sizeof_type_rec(tmp_size.op1()) == tmp_type);
+      }
+
+      result_type=array_typet(tmp_type, s);
+    }
+    else
+    {
+      if(alloc_size==elem_size)
+      {
+        result_type=tmp_type;
+      }
+      else
+      {
+        mp_integer elements=alloc_size/elem_size;
+
+        if(elements*elem_size==alloc_size)
+        {
+          result_type=array_typet(
+            tmp_type, from_integer(elements, tmp_size.type()));
+        }
+        else
+        {
+          result_type = array_typet(unsigned_char_type(), tmp_size);
+        }
+      }
+    }
+  }
+  else
+  {
+    result_type = array_typet(unsigned_char_type(), tmp_size);
+  }
+
+  POSTCONDITION(result_type.is_not_nil());
+  return result_type;
+}
 
 exprt make_binary(const exprt &expr)
 {

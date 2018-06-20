@@ -2089,20 +2089,29 @@ exprt c_typecheck_baset::do_special_functions(
   }
   else if(identifier==CPROVER_PREFIX "valid_pointer")
   {
-    if(expr.arguments().size()!=1)
+    if(expr.arguments().size()!=2)
     {
       err_location(f_op);
-      error() << "valid_pointer expects one operand" << eom;
+      error() << "valid_pointer expects two operands" << eom;
       throw 0;
     }
     if(!is_lvalue(expr.arguments().front()))
     {
       err_location(f_op);
-      error() << "argument to valid_pointer must be an lvalue" << eom;
+      error() << "ptr argument to valid_pointer must be an lvalue" << eom;
       throw 0;
     }
 
-    exprt same_object_expr = valid_pointer(expr.arguments().front());
+    exprt same_object_expr;
+    if(expr.arguments().size() == 2)
+    {
+      same_object_expr =
+        valid_pointer(expr.arguments()[0], expr.arguments()[1]);
+    }
+    else
+    {
+      UNREACHABLE;
+    }
     same_object_expr.add_source_location()=source_location;
 
     return same_object_expr;
