@@ -98,14 +98,14 @@ void expand_pointer_predicatest::expand_assumption(
   for(depth_iteratort it=assume_expr.depth_begin();
       it != assume_expr.depth_end();)
   {
-    if(it->id() == ID_valid_pointer)
+    if(it->id() == ID_points_to_valid_memory)
     {
-      exprt &valid_pointer_expr = it.mutate();
-      exprt &pointer_expr = valid_pointer_expr.op0();
-      exprt size_expr = valid_pointer_expr.op1();
+      exprt &valid_memory_expr = it.mutate();
+      exprt &pointer_expr = valid_memory_expr.op0();
+      exprt size_expr = valid_memory_expr.op1();
       simplify(size_expr, ns);
-     
-      // This should be forced by typechecking. 
+
+      // This should be forced by typechecking.
       INVARIANT(pointer_expr.type().id() == ID_pointer &&
                   is_lvalue(pointer_expr),
                 "Invalid argument to valid_pointer.");
@@ -113,7 +113,7 @@ void expand_pointer_predicatest::expand_assumption(
       typet &base_type = pointer_expr.type().subtype();
 
       typet object_type = type_from_size(size_expr, ns);
-      
+
       // Decl a new variable (which is therefore unconstrained)
       goto_programt::targett d = assume_code.add_instruction(DECL);
       d->function = target->function;
@@ -146,9 +146,10 @@ void expand_pointer_predicatest::expand_assumption(
       // objects are initialized, we need to make some additional assumptions
       // to clarify that our newly allocated object is not dead, deallocated,
       // or outside the bounds of a malloc region.
-      
-      exprt check_expr = valid_pointer_assume_def(pointer_expr, size_expr, ns);
-      valid_pointer_expr.swap(check_expr);
+
+      exprt check_expr =
+        points_to_valid_memory_def(pointer_expr, size_expr, ns);
+      valid_memory_expr.swap(check_expr);
       it.next_sibling_or_parent();
     }
     else {
@@ -164,15 +165,16 @@ void expand_pointer_predicatest::expand_assertion(exprt &assert_expr)
   for(depth_iteratort it = assert_expr.depth_begin();
       it != assert_expr.depth_end();)
   {
-    if(it->id() == ID_valid_pointer)
+    if(it->id() == ID_points_to_valid_memory)
     {
       // Build an expression that checks validity.
-      exprt &valid_pointer_expr = it.mutate();
-      exprt &pointer_expr = valid_pointer_expr.op0();
-      exprt &size_expr = valid_pointer_expr.op1();
+      exprt &valid_memory_expr = it.mutate();
+      exprt &pointer_expr = valid_memory_expr.op0();
+      exprt &size_expr = valid_memory_expr.op1();
 
-      exprt check_expr = valid_pointer_assert_def(pointer_expr, size_expr, ns);
-      valid_pointer_expr.swap(check_expr);
+      exprt check_expr =
+        points_to_valid_memory_def(pointer_expr, size_expr, ns);
+      valid_memory_expr.swap(check_expr);
       it.next_sibling_or_parent();
     }
     else
