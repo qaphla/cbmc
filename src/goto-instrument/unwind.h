@@ -108,7 +108,8 @@ protected:
     const irep_idt func,
     const unsigned loop_id,
     const unwindsett &unwindset) const;
-
+// TODO XXX
+public:
   // copy goto program segment and redirect internal edges
   void copy_segment(
     const goto_programt::const_targett start,

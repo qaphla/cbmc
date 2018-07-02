@@ -11,7 +11,7 @@ int main()
 
   while(r > 0)
     __CPROVER_loop_invariant(r >= 0)
-  { 
+  {
     --r;
     if (r < 5)
     {

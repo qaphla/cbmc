@@ -1,4 +1,4 @@
-KNOWNBUG
+CORE
 main.c
 --check-code-contracts
 ^EXIT=0$
@@ -6,4 +6,3 @@ main.c
 ^VERIFICATION SUCCESSFUL$
 --
 --
-Loop invariant checking throws away more information than needed.

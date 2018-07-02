@@ -30,6 +30,10 @@ Date: February 2016
 #include <pointer-analysis/value_set_analysis_fi.h>
 
 #include "loop_utils.h"
+// TODO XXX move copy_segment to a better place.
+#include "unwind.h"
+
+#include <iostream>
 
 enum class contract_opst { APPLY, CHECK };
 
@@ -467,16 +471,11 @@ void code_contractst::check_apply_invariant(
     return;
   }
 
-  // change H: loop; E: ...
-  // to
-  // H: assert(invariant);
-  // havoc writes of loop;
-  // assume(invariant);
-  // loop (minus the ending goto);
-  // assert(invariant);
-  // assume(!guard)
-  // E:
-  // ...
+  bool is_do_while = !loop_head->is_goto();
+  exprt loop_guard = is_do_while ? loop_end->guard
+                                 : not_exprt(loop_head->guard);
+  goto_programt::targett loop_exit = loop_end;
+  ++loop_exit;
 
   // find out what can get changed in the loop
   modifiest modifies;
@@ -495,56 +494,154 @@ void code_contractst::check_apply_invariant(
     }
   }
 
-  // build the havocking code
-  goto_programt havoc_code;
+  // Move guard to the beginning of loop to match for/while
+  if(is_do_while)
+  {
+    goto_programt::instructiont g;
+    g.make_goto(loop_exit, not_exprt(loop_guard));
+    g.function = loop_head->function;
+    g.source_location = loop_head->source_location;
+    goto_function.body.insert_before_swap(loop_head, g);
+  }
+
+  // change H: guard; loop; E: goto H; R: ...
+  // to
+  // H: assert(invariant)
+  // if(nondet) goto E
+  //   havoc writes of loop
+  //   assume(invariant)
+  //   assume(loop_guard)
+  //   loop body
+  // E: assume(invariant)
+  // if(!loop_guard) goto R
+  // loop body[E'/E]
+  // E': assert(invariant)
+  // assume(!loop_guard)
+  // R: ...
+  // Plus some skips to make this easier to set up.
+
+  // TODO Is there a cleaner way to do this? insert_before_swap breaks because
+  // new instruction has location number 0.
+  // Add a skip before loop_end as a jump target for jumps in the loop body
+  {
+    goto_programt::targett s = goto_function.body.insert_before(loop_end);
+    s->make_skip();
+    s->function = loop_end->function;
+    s->source_location = loop_end->source_location;
+
+    // Redirect jumps to loop_end to the new skip.
+    for(goto_programt::targett
+        t=goto_function.body.const_cast_target(loop_head);
+        t!=loop_end; t++)
+    {
+      if(!t->is_goto())
+      {
+        continue;
+      }
+
+      if(t->get_target()==loop_end)
+      {
+        t->set_target(s);
+      }
+    }
+
+    goto_function.body.output(std::cout);
+  }
+
+  goto_programt suffix_program;
+
+  {
+    goto_programt tmp_program;
+    goto_unwindt().copy_segment(loop_head, loop_end, tmp_program);
+
+    suffix_program.destructive_append(tmp_program);
+  }
+
+  // Assert the invariant at the end of the loop
+  {
+    goto_programt::targett a = suffix_program.add_instruction();
+    a->make_assertion(invariant);
+    a->function = loop_head->function;
+    a->source_location = invariant.source_location();
+    a->source_location.set_comment("Loop invariant not preserved");
+  }
+
+  // Assume that the guard no longer holds after exiting the loop
+  {
+    goto_programt::targett a = suffix_program.add_instruction();
+    a->make_assumption(not_exprt(loop_guard));
+    a->function = loop_head->function;
+    a->source_location = invariant.source_location();
+  }
+
+  goto_function.body.destructive_insert(loop_exit, suffix_program);
+
+  loop_end->make_assumption(invariant);
+  loop_end->source_location = invariant.source_location();
+
+  // build the havocking code (and surrounding assumptions);
+  goto_programt prefix_program;
 
   // assert the invariant
   {
-    goto_programt::targett a=havoc_code.add_instruction(ASSERT);
-    a->guard=invariant;
-    a->function=loop_head->function;
-    a->source_location=loop_head->source_location;
+    goto_programt::targett a = prefix_program.add_instruction();
+    a->make_assertion(invariant);
+    a->function = loop_head->function;
+    a->source_location = loop_head->source_location;
     a->source_location.set_comment("Loop invariant violated before entry");
   }
 
-  // havoc variables that can be modified by the loop
-  build_havoc_code(loop_head, modifies, havoc_code);
+  // Handle the first (non-guarded) iteration of a do-while loop.
+  if(is_do_while)
+  {
+    goto_programt tmp_program;
+    goto_unwindt().copy_segment(loop_head, loop_end, tmp_program);
+
+    // Remove the guard from the beginning of the first iteration.
+    {
+      goto_programt::targett g = tmp_program.instructions.begin();
+      g->make_skip();
+      g->function = loop_head->function;
+      g->source_location = loop_head->source_location;
+    }
+
+    prefix_program.destructive_append(tmp_program);
+
+    // assert the invariant (again)
+    {
+      goto_programt::targett a = prefix_program.add_instruction();
+      a->make_assertion(invariant);
+      a->function = loop_head->function;
+      a->source_location = loop_head->source_location;
+      a->source_location.set_comment("Loop invariant violated after "
+                                     "first iteration");
+    }
+  }
+
+  // Nondeterministically skip the first portion of the code
+  {
+    goto_programt::targett g = prefix_program.add_instruction();
+    g->make_goto(loop_end, side_effect_expr_nondett(bool_typet()));
+    g->function = loop_head->function;
+    g->source_location = loop_head->source_location;
+  }
+
+  // havoc variables being written to
+  build_havoc_code(loop_head, modifies, prefix_program);
 
   // assume the invariant
   {
-    goto_programt::targett assume=havoc_code.add_instruction(ASSUME);
-    assume->guard=invariant;
-    assume->function=loop_head->function;
-    assume->source_location=loop_head->source_location;
+    goto_programt::targett a = prefix_program.add_instruction();
+    a->make_assumption(invariant);
+    a->function = loop_head->function;
+    a->source_location = loop_head->source_location;
   }
 
-  // assert the invariant at the end of the loop body
-  {
-    goto_programt::instructiont a(ASSERT);
-    a.guard=invariant;
-    a.function=loop_end->function;
-    a.source_location=loop_end->source_location;
-    a.source_location.set_comment("Loop invariant not preserved");
+  // Replace the loop head with an assumption
+  loop_head->make_assumption(loop_guard);
 
-    goto_function.body.insert_before_swap(loop_end, a);
-    ++loop_end;
-  }
-
-  // change the back edge into assume(!guard)
-  loop_end->targets.clear();
-  loop_end->type=ASSUME;
-  if(loop_head->is_goto())
-  {
-    loop_end->guard = loop_head->guard;
-  }
-  else
-  {
-    loop_end->guard.make_not();
-  }
-
-  // Now havoc at the loop head. Use insert_before_swap to
-  // preserve jumps to loop head.
-  goto_function.body.insert_before_swap(loop_head, havoc_code);
+  // Add in the havocking code, preserving jumps to loop_head.
+  goto_function.body.insert_before_swap(loop_head, prefix_program);
 }
 
 const symbolt &code_contractst::new_tmp_symbol(
