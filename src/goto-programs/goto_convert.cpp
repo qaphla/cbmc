@@ -955,6 +955,7 @@ void goto_convertt::convert_loop_invariant(
   if(invariant.is_nil())
     return;
 
+#if 0
   goto_programt no_sideeffects;
   clean_expr(invariant, no_sideeffects, mode);
   if(!no_sideeffects.instructions.empty())
@@ -963,6 +964,7 @@ void goto_convertt::convert_loop_invariant(
     error() << "loop invariant is not side-effect free" << eom;
     throw 0;
   }
+#endif
 
   assert(loop->is_goto());
   loop->guard.add(ID_C_spec_loop_invariant).swap(invariant);
