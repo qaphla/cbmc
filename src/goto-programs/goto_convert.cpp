@@ -1029,19 +1029,22 @@ void goto_convertt::convert_for(
     }
   }
 
-  // optimize the v label
-  if(sideeffects.instructions.empty())
-    u=v;
-
   // set the targets
   targets.set_break(z);
   targets.set_continue(tmp_x.instructions.begin());
 
   // v: if(!c) goto z;
   v->make_goto(z);
-  v->guard=cond;
-  v->guard.make_not();
+  v->guard=boolean_negate(cond);
   v->source_location=cond.source_location();
+
+  // optimize the v label
+  if(sideeffects.instructions.empty())
+  {
+    u=v;
+    // TODO: Extend this to all loops and to use a better ID.
+    u->guard.add(ID_loop_guard_storage, cond);
+  }
 
   // do the w label
   goto_programt tmp_w;
@@ -1073,32 +1076,35 @@ void goto_convertt::convert_while(
   goto_programt &dest,
   const irep_idt &mode)
 {
-  const exprt &cond=code.cond();
+  exprt cond=code.cond();
   const source_locationt &source_location=code.source_location();
 
   //    while(c) P;
   //--------------------
-  // v: sideeffects in c
-  //    if(!c) goto z;
+  // u: sideeffects in c
+  // v: if(!c) goto z;
   // x: P;
-  // y: goto v;          <-- continue target
+  // y: goto u;          <-- continue target
   // z: ;                <-- break target
 
   // save break/continue targets
   break_continue_targetst old_targets(targets);
+
+  goto_programt sideeffects;
+  clean_expr(cond, sideeffects, mode);
+
+  // do the u label
+  goto_programt::targett u=sideeffects.instructions.begin();
+
+  // do the v label
+  goto_programt tmp_v;
+  goto_programt::targett v=tmp_v.add_instruction();
 
   // do the z label
   goto_programt tmp_z;
   goto_programt::targett z=tmp_z.add_instruction();
   z->make_skip();
   z->source_location=source_location;
-
-  goto_programt tmp_branch;
-  generate_conditional_branch(
-    boolean_negate(cond), z, source_location, tmp_branch, mode);
-
-  // do the v label
-  goto_programt::targett v=tmp_branch.instructions.begin();
 
   // do the y label
   goto_programt tmp_y;
@@ -1108,19 +1114,33 @@ void goto_convertt::convert_while(
   targets.set_break(z);
   targets.set_continue(y);
 
+  // v: if(!c) goto z;
+  v->make_goto(z);
+  v->guard=boolean_negate(cond);
+  v->source_location = code.source_location();
+
+  // optimize the v label
+  if(sideeffects.instructions.empty())
+  {
+    u=v;
+    // TODO: Extend this to all loops and to use a better ID.
+    u->guard.add(ID_loop_guard_storage, cond);
+  }
+
   // do the x label
   goto_programt tmp_x;
   convert(code.body(), tmp_x, mode);
 
-  // y: if(c) goto v;
-  y->make_goto(v);
+  // y: goto u;
+  y->make_goto(u);
   y->guard=true_exprt();
   y->source_location=code.source_location();
 
   // loop invariant
   convert_loop_invariant(code, y, mode);
 
-  dest.destructive_append(tmp_branch);
+  dest.destructive_append(sideeffects);
+  dest.destructive_append(tmp_v);
   dest.destructive_append(tmp_x);
   dest.destructive_append(tmp_y);
   dest.destructive_append(tmp_z);
@@ -1184,6 +1204,11 @@ void goto_convertt::convert_dowhile(
   goto_programt tmp_w;
   convert(to_code(code.op1()), tmp_w, mode);
   goto_programt::targett w=tmp_w.instructions.begin();
+  if(sideeffects.instructions.empty())
+  {
+    // TODO: Extend this to all loops and to use a better ID.
+    w->guard.add(ID_loop_guard_storage, cond);
+  }
 
   // y: if(c) goto w;
   y->make_goto(w);

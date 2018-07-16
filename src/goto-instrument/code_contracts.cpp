@@ -311,18 +311,14 @@ void code_contractst::apply_invariant(
     assume->source_location=loop_head->source_location;
   }
 
-  // assume !guard
+  // assume !guard if possible.
+  exprt loop_guard = static_cast<const exprt&>(
+    loop_head->guard.find(ID_loop_guard_storage));
+  if(loop_guard.is_not_nil())
   {
     goto_programt::targett assume = havoc_code.add_instruction(ASSUME);
-    if(loop_head->is_goto())
-    {
-      assume->guard = loop_head->guard;
-    }
-    else
-    {
-      assume->guard = loop_end->guard;
-      assume->guard.make_not();
-    }
+    assume->guard = loop_guard;
+    assume->guard.make_not();
     assume->function = loop_head->function;
     assume->source_location = loop_head->source_location;
   }
@@ -530,16 +526,19 @@ void code_contractst::check_apply_invariant(
     ++loop_end;
   }
 
-  // change the back edge into assume(!guard)
+  // change the back edge into assume(!guard) if possible, otherwise skip
   loop_end->targets.clear();
-  loop_end->type=ASSUME;
-  if(loop_head->is_goto())
+  exprt loop_guard = static_cast<const exprt&>(
+    loop_head->guard.find(ID_loop_guard_storage));
+  if(loop_guard.is_not_nil())
   {
-    loop_end->guard = loop_head->guard;
+    loop_end->type=ASSUME;
+    loop_end->guard = loop_guard;
+    loop_end->guard.make_not();
   }
   else
   {
-    loop_end->guard.make_not();
+    loop_end->make_skip();
   }
 
   // Now havoc at the loop head. Use insert_before_swap to
