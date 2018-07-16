@@ -1068,6 +1068,10 @@ void goto_instrument_parse_optionst::instrument_goto_program()
     do_remove_returns();
     status() << "Applying Code Contracts" << eom;
     apply_code_contracts(goto_model);
+    if(!cmdline.isset("expand-pointer-predicates"))
+    {
+      expand_pointer_predicates(goto_model);
+    }
   }
 
   // verify and set invariants and pre/post-condition pairs
@@ -1081,6 +1085,10 @@ void goto_instrument_parse_optionst::instrument_goto_program()
     do_remove_returns();
     status() << "Checking Code Contracts" << eom;
     check_code_contracts(goto_model);
+    if(!cmdline.isset("expand-pointer-predicates"))
+    {
+      expand_pointer_predicates(goto_model);
+    }
   }
 
   if(cmdline.isset("expand-pointer-predicates"))

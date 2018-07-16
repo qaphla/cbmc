@@ -26,8 +26,6 @@ Date: June 2018
 
 #include <goto-programs/goto_model.h>
 
-#include <iostream>
-
 class expand_pointer_predicatest
 {
 public:
@@ -108,7 +106,8 @@ void expand_pointer_predicatest::expand_assumption(
       // This should be forced by typechecking.
       INVARIANT(pointer_expr.type().id() == ID_pointer &&
                   is_lvalue(pointer_expr),
-                "Invalid argument to valid_pointer.");
+                "Invalid argument to points_to_valid_memory: " +
+                  pointer_expr.pretty());
 
       typet &base_type = pointer_expr.type().subtype();
 
